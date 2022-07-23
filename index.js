@@ -57,7 +57,7 @@ function tokenizer(input) {
       //skip closing double quote
       currentChar = input[++travelCount];
 
-      tokens.push({ type: `strings`, value: stringsValue });
+      tokens.push({ type: `string`, value: stringsValue });
       continue;
     }
     let LETTERS = /[a-z]/i;
@@ -70,8 +70,60 @@ function tokenizer(input) {
       tokens.push({ type: `name`, value: nameValue });
       continue;
     }
-    throw new Error(`invalid syntax: currentChar`);
+    throw new Error(`invalid syntax: ${currentChar}`);
   }
   return tokens;
 }
-function parser(tokens) {}
+// turn our array of tokens to an Abstraction Syntax Tree - a collection of objects represented in a detailed format
+function parser(tokens) {
+  let travelCount = 0;
+  function walk() {
+    let token = tokens[travelCount];
+    if (token.type === `number`) {
+      travelCount++;
+      return {
+        type: `NumberLiteral`,
+        value: token.value,
+      };
+    }
+    if (token.type === `string`) {
+      travelCount++;
+      return {
+        type: `StringLiteral`,
+        value: token.value,
+      };
+    }
+    if (token.type === `parenthesis` && token.value === `(`) {
+      //skips opening parenthesis
+      token = tokens[++travelCount];
+      // create a base node and set the name to the stringValue
+      let node = {
+        type: `callExpression`,
+        name: token.value,
+        params: [],
+      };
+      // skip the name token, we already used the StringValue
+      token = tokens[++travelCount];
+
+      while (
+        token.type !== `parenthesis` ||
+        (token.type === `parenthesis` && token.value !== `)`)
+      ) {
+        // for nested calls,create a child node
+        node.params.push(walk());
+        token = tokens[++travelCount];
+      }
+      // skips closing parenthesis
+      travelCount++;
+      return node;
+    }
+    throw new TypeError(token.type);
+  }
+  // AST with a root node(token)
+  let Ast = {
+    type: `Program`,
+    body: [],
+  };
+  while (travelCount < tokens.length) Ast.body.push(walk());
+  return Ast;
+}
