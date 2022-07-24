@@ -1,6 +1,6 @@
 # JS-Compiler
 
-This is a basic implementation a compiler in JavaScript.
+This is a basic implementation of a compiler in JavaScript.
 I'm starting this project to better understand how code is structured and how you write good code, I'm basically always curious about how thing are created.
 A compiler sounds interesting enough, and a simple one? makes it more easy. Let's go!
 
