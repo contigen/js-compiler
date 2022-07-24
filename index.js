@@ -2,10 +2,43 @@
 
 let visitor = {
   NumberLiteral: {
-    enter(node, parent) {},
+    enter(node, parent) {
+      parent._context.push({
+        type: "NumberLiteral",
+        value: node.value,
+      });
+    },
     exit(node, parent) {},
   },
-  callExpression(node, parent) {},
+  StringLiteral: {
+    enter(node, parent) {
+      parent._context.push({
+        type: "StringLiteral",
+        value: node.value,
+      });
+    },
+    exit(node, parent) {},
+  },
+  CallExpression: {
+    enter(node, parent) {
+      let expression = {
+        type: `CallExpression`,
+        callee: {
+          type: `Identifier`,
+          name: node.name,
+        },
+        arguments: [],
+      };
+      node._context = expression.arguments;
+      if (parent.type !== `CallExpression`) {
+        expression = {
+          type: `ExpressionStatement`,
+          ...expression,
+        };
+      }
+      parent._context.push(expression);
+    },
+  },
 };
 // parsing, lexical analysis: the tokenizer
 function tokenizer(input) {
@@ -159,4 +192,49 @@ function traverser(Ast, visitor) {
     }
   }
   traverseNode(Ast, null);
+}
+// the transformer, basically, modifies the original AST and creates a new one
+function transformer(Ast) {
+  let newAst = {
+    type: `Program`,
+    body: [],
+  };
+  Ast._context = newAst.body;
+  traverser(Ast, visitor);
+  return newAst;
+}
+function codeGenerator(node) {
+  switch (node.type) {
+    case `Program`:
+      return node.body.map(codeGenerator).join(` `);
+    case `ExpressionStatement`:
+      return codeGenerator(node.expression) + ";";
+    case "CallExpression":
+      return (
+        codeGenerator(node.callee) +
+        "(" +
+        node.arguments.map(codeGenerator).join(", ") +
+        ")"
+      );
+
+    case "Identifier":
+      return node.name;
+
+    case "NumberLiteral":
+      return node.value;
+
+    case "StringLiteral":
+      return '"' + node.value + '"';
+
+    default:
+      throw new TypeError(node.type);
+  }
+}
+
+function compiler(input) {
+  let tokens = tokenizer(input);
+  let Ast = parser(tokens);
+  let newAst = transformer(Ast);
+  let codeOutput = codeGenerator(newAst);
+  return codeOutput;
 }
