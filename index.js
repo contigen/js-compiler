@@ -1,4 +1,5 @@
 `use strict`;
+
 let visitor = {
   NumberLiteral: {
     enter(node, parent) {},
@@ -124,6 +125,38 @@ function parser(tokens) {
     type: `Program`,
     body: [],
   };
+  // there might exist more than one callExpression, so loop through all
   while (travelCount < tokens.length) Ast.body.push(walk());
   return Ast;
+}
+// the traverser
+function traverser(Ast, visitor) {
+  function traverseArray(arr, parent) {
+    arr.forEach((element) => {
+      traverseNode(element, parent);
+    });
+  }
+  function traverseNode(node, parent) {
+    let methods = visitor[node.type];
+    if (methods?.enter) {
+      methods.enter(node, parent);
+    }
+    switch (node.type) {
+      case `Program`:
+        traverseArray(node.body, node);
+        break;
+      case `CallExpression`:
+        traverseArray(node.params, node);
+        break;
+      case `NumberLiteral`:
+      case `StringLiteral`:
+        break;
+      default:
+        throw new TypeError(node.type);
+    }
+    if (methods?.exit) {
+      methods.exit(node, parent);
+    }
+  }
+  traverseNode(Ast, null);
 }
