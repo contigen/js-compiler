@@ -1,7 +1,7 @@
 {
   "name": "js-compiler",
   "version": "1.0.0",
-  "description": "A JS compiler, apparently",
+  "description": "A basic implementation of a JavaScript compiler, apparently",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
