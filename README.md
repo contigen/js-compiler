@@ -11,6 +11,8 @@ semantic analyis and the direct execution - [COMPILER DESIGN](http://cnuinfotech
 
 Lexical Analysis - raw code to **tokens**(unit of the code syntax) using a **tokenizer**
 
+Syntactic Analysis - restructuring the tokens to a more detailed format, **Abstract Syntax Tree** - a deeply nested object that describes each part of the code syntax and their relation to one another
+
 ## Usage
 
 Do your stuff.
